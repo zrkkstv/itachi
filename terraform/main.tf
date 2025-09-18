@@ -1,12 +1,12 @@
+# Creating network
+resource "google_compute_network" "main" {
+  name = "dev-network"
+}
+
 # Defines a custom service account
 resource "google_service_account" "task_sa" {
   account_id   = var.service_account_id
   display_name = "SA for VM instances"
-}
-
-# Creating network
-resource "google_compute_network" "main" {
-  name = "dev-network"
 }
 
 # The OpS for building the application
