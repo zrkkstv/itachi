@@ -26,6 +26,21 @@ resource "google_compute_instance" "ops_server" {
     access_config {}
   }
 
+  metadata_startup_script = <<-EOT
+    #!/bin/bash
+    
+    # Update package list
+    sudo apt-get update
+    
+    # Install OpenJDK (Java 17), Maven, and Unzip
+    sudo apt-get install -y openjdk-17-jdk maven unzip
+    
+    # Install the Google Cloud SDK (for gcloud commands)
+    curl -sSL https://sdk.cloud.google.com | bash
+    
+    # You can also add other setup commands here.
+    EOT
+
   service_account {
     email  = google_service_account.task_sa.email
     scopes = ["cloud-platform"]
@@ -50,6 +65,21 @@ resource "google_compute_instance" "aps_server" {
     network = "dev-network"
     access_config {}
   }
+
+  metadata_startup_script = <<-EOT
+    #!/bin/bash
+    
+    # Update package list
+    sudo apt-get update
+    
+    # Install OpenJDK (Java 17), Maven, and Unzip
+    sudo apt-get install -y openjdk-17-jdk maven unzip
+    
+    # Install the Google Cloud SDK (for gcloud commands)
+    curl -sSL https://sdk.cloud.google.com | bash
+    
+    # You can also add other setup commands here.
+    EOT
 
   service_account {
     email  = google_service_account.task_sa.email
