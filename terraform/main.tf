@@ -33,9 +33,17 @@ resource "google_compute_instance" "ops_server" {
 set -xe
 export DEBIAN_FRONTEND=noninteractive
 
-# Install required packages
-apt-get update -y
-apt-get install -y git openjdk-17-jdk maven unzip
+# Retry apt-get update until it succeeds
+until apt-get update -y; do
+  echo "apt-get update failed, retrying in 5s..."
+  sleep 5
+done
+
+# Retry package install until it succeeds
+until apt-get install -y git openjdk-17-jdk maven unzip; do
+  echo "apt-get install failed, retrying in 5s..."
+  sleep 5
+done
 
 # Ensure PATH is set globally for all users
 echo 'export PATH=/usr/bin:/usr/local/bin:$PATH' | tee -a /etc/profile.d/custom-path.sh
@@ -78,9 +86,17 @@ resource "google_compute_instance" "aps_server" {
 set -xe
 export DEBIAN_FRONTEND=noninteractive
 
-# Install required packages
-apt-get update -y
-apt-get install -y git openjdk-17-jdk maven unzip
+# Retry apt-get update until it succeeds
+until apt-get update -y; do
+  echo "apt-get update failed, retrying in 5s..."
+  sleep 5
+done
+
+# Retry package install until it succeeds
+until apt-get install -y git openjdk-17-jdk maven unzip; do
+  echo "apt-get install failed, retrying in 5s..."
+  sleep 5
+done
 
 # Ensure PATH is set globally for all users
 echo 'export PATH=/usr/bin:/usr/local/bin:$PATH' | tee -a /etc/profile.d/custom-path.sh
