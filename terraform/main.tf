@@ -38,7 +38,7 @@ resource "google_compute_instance" "ops_server" {
     # Install the Google Cloud SDK (for gcloud commands)
     curl -sSL https://sdk.cloud.google.com | bash
     
-    # You can also add other setup commands here.
+    
     EOT
 
   service_account {
@@ -78,7 +78,7 @@ resource "google_compute_instance" "aps_server" {
     # Install the Google Cloud SDK (for gcloud commands)
     curl -sSL https://sdk.cloud.google.com | bash
     
-    # You can also add other setup commands here.
+    
     EOT
 
   service_account {
