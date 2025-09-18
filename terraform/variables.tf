@@ -24,7 +24,7 @@ variable "machine_type" {
 variable "image" {
   type        = string
   description = "The boot disk image for the VMs."
-  default     = "debian-cloud/debian-11"
+  default     = "ubuntu-os-cloud/ubuntu-2204-lts"
 }
 
 variable "service_account_id" {

@@ -22,24 +22,18 @@ resource "google_compute_instance" "ops_server" {
   }
 
   network_interface {
-    network = "dev-network"
+    network = google_compute_network.main.name
     access_config {}
   }
 
-  metadata_startup_script = <<-EOT
+  metadata = {
+    startup-script = <<-EOT
     #!/bin/bash
-    
-    # Update package list
-    sudo apt-get update
-    
-    # Install OpenJDK (Java 17), Maven, and Unzip
-    sudo apt-get install -y openjdk-17-jdk maven unzip
-    
-    # Install the Google Cloud SDK (for gcloud commands)
-    curl -sSL https://sdk.cloud.google.com | bash
-    
-    
-    EOT
+    sudo apt-get update -y
+    sudo apt-get install -y git openjdk-17-jdk maven unzip
+  EOT
+  }
+
 
   service_account {
     email  = google_service_account.task_sa.email
@@ -62,24 +56,17 @@ resource "google_compute_instance" "aps_server" {
   }
 
   network_interface {
-    network = "dev-network"
+    network = google_compute_network.main.name
     access_config {}
   }
-
-  metadata_startup_script = <<-EOT
+  metadata = {
+    startup-script = <<-EOT
     #!/bin/bash
-    
-    # Update package list
-    sudo apt-get update
-    
-    # Install OpenJDK (Java 17), Maven, and Unzip
-    sudo apt-get install -y openjdk-17-jdk maven unzip
-    
-    # Install the Google Cloud SDK (for gcloud commands)
-    curl -sSL https://sdk.cloud.google.com | bash
-    
-    
-    EOT
+    sudo apt-get update -y
+    sudo apt-get install -y git openjdk-17-jdk maven unzip
+  EOT
+  }
+
 
   service_account {
     email  = google_service_account.task_sa.email
@@ -91,14 +78,14 @@ resource "google_compute_instance" "aps_server" {
 
 # A storage bucket to hold build artifacts
 resource "google_storage_bucket" "artifacts_bucket" {
-  name     = "${var.project_id}-app-artifacts"
+  name     = "${var.project_id}-app-artifacts" # Uses project ID to ensure a unique name
   location = var.region
 }
 
 # Firewall rule to allow SSH from the internet to builder and app servers
 resource "google_compute_firewall" "allow-ssh" {
   name        = "allow-ssh-from-internet"
-  network     = "dev-network"
+  network     = google_compute_network.main.name
   target_tags = ["builder-vm", "app-server"]
 
   allow {
@@ -112,7 +99,7 @@ resource "google_compute_firewall" "allow-ssh" {
 # Firewall rule to allow HTTP from the internet
 resource "google_compute_firewall" "allow-http" {
   name        = "allow-http-from-internet"
-  network     = "dev-network"
+  network     = google_compute_network.main.name
   target_tags = ["app-server"]
 
   allow {
