@@ -19,6 +19,7 @@ resource "google_compute_instance" "ops_server" {
     initialize_params {
       image = var.image
     }
+    auto_delete = true
   }
 
   network_interface {
@@ -28,12 +29,22 @@ resource "google_compute_instance" "ops_server" {
 
   metadata = {
     startup-script = <<-EOT
-    #!/bin/bash
-    sudo apt-get update -y
-    sudo apt-get install -y git openjdk-17-jdk maven unzip
-  EOT
-  }
+#!/bin/bash
+set -xe
+export DEBIAN_FRONTEND=noninteractive
 
+# Install required packages
+apt-get update -y
+apt-get install -y git openjdk-17-jdk maven unzip
+
+# Ensure PATH is set globally for all users
+echo 'export PATH=/usr/bin:/usr/local/bin:$PATH' | tee -a /etc/profile.d/custom-path.sh
+chmod +x /etc/profile.d/custom-path.sh
+
+# Refresh environment
+hash -r
+EOT
+  }
 
   service_account {
     email  = google_service_account.task_sa.email
@@ -53,20 +64,32 @@ resource "google_compute_instance" "aps_server" {
     initialize_params {
       image = var.image
     }
+    auto_delete = true
   }
 
   network_interface {
     network = google_compute_network.main.name
     access_config {}
   }
+
   metadata = {
     startup-script = <<-EOT
-    #!/bin/bash
-    sudo apt-get update -y
-    sudo apt-get install -y git openjdk-17-jdk maven unzip
-  EOT
-  }
+#!/bin/bash
+set -xe
+export DEBIAN_FRONTEND=noninteractive
 
+# Install required packages
+apt-get update -y
+apt-get install -y git openjdk-17-jdk maven unzip
+
+# Ensure PATH is set globally for all users
+echo 'export PATH=/usr/bin:/usr/local/bin:$PATH' | tee -a /etc/profile.d/custom-path.sh
+chmod +x /etc/profile.d/custom-path.sh
+
+# Refresh environment
+hash -r
+EOT
+  }
 
   service_account {
     email  = google_service_account.task_sa.email
