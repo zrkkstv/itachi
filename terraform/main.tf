@@ -1,7 +1,12 @@
-# Defines a custom service account for your VMs
+# Defines a custom service account
 resource "google_service_account" "task_sa" {
   account_id   = var.service_account_id
   display_name = "SA for VM instances"
+}
+
+# Creating network
+resource "google_compute_network" "main" {
+  name = "dev-network"
 }
 
 # The OpS for building the application
@@ -17,7 +22,7 @@ resource "google_compute_instance" "ops_server" {
   }
 
   network_interface {
-    network = "default"
+    network = "dev-network"
     access_config {}
   }
 
@@ -42,7 +47,7 @@ resource "google_compute_instance" "aps_server" {
   }
 
   network_interface {
-    network = "default"
+    network = "dev-network"
     access_config {}
   }
 
@@ -56,14 +61,14 @@ resource "google_compute_instance" "aps_server" {
 
 # A storage bucket to hold build artifacts
 resource "google_storage_bucket" "artifacts_bucket" {
-  name     = "${var.project_id}-app-artifacts" # Uses project ID to ensure a unique name
+  name     = "${var.project_id}-app-artifacts"
   location = var.region
 }
 
 # Firewall rule to allow SSH from the internet to builder and app servers
 resource "google_compute_firewall" "allow-ssh" {
   name        = "allow-ssh-from-internet"
-  network     = "default"
+  network     = "dev-network"
   target_tags = ["builder-vm", "app-server"]
 
   allow {
@@ -77,7 +82,7 @@ resource "google_compute_firewall" "allow-ssh" {
 # Firewall rule to allow HTTP from the internet
 resource "google_compute_firewall" "allow-http" {
   name        = "allow-http-from-internet"
-  network     = "default"
+  network     = "dev-network"
   target_tags = ["app-server"]
 
   allow {
