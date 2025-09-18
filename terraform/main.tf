@@ -1,78 +1,89 @@
-resource "google_service_account" "default" {
-  account_id   = "task-sa"
+# Defines a custom service account for your VMs
+resource "google_service_account" "task_sa" {
+  account_id   = var.service_account_id
   display_name = "SA for VM instances"
 }
 
-resource "google_compute_address" "ip_address" {
-  name   = "my-address"
-  region = "us-central1"
-}
-
-resource "google_compute_instance" "ops" {
-  name         = "ops-instance"
-  machine_type = "n2-standard-2"
-  zone         = "us-central1-a"
-
-  tags = ["builder-vm"]
+# The OpS for building the application
+resource "google_compute_instance" "ops_server" {
+  name         = "ops-server"
+  machine_type = var.machine_type
+  zone         = var.zone
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-11"
-      labels = {
-        my_label = "value"
-      }
+      image = var.image
     }
-  }
-
-  // Local SSD disk
-  scratch_disk {
-    interface = "NVME"
   }
 
   network_interface {
     network = "default"
+    access_config {}
+  }
 
-    access_config {
-      // Ephemeral public IP
+  service_account {
+    email  = google_service_account.task_sa.email
+    scopes = ["cloud-platform"]
+  }
+
+  tags = ["builder-vm", "http-server"]
+}
+
+# The ApS for running the application
+resource "google_compute_instance" "aps_server" {
+  name         = "aps-server"
+  machine_type = var.machine_type
+  zone         = var.zone
+
+  boot_disk {
+    initialize_params {
+      image = var.image
     }
   }
 
-  metadata = {
-    foo = "bar"
+  network_interface {
+    network = "default"
+    access_config {}
   }
-
-  metadata_startup_script = <<-EOT
-    #!/bin/bash
-    
-    # Update package list
-    sudo apt-get update
-    
-    # Install Git, OpenJDK (Java), and Maven
-    sudo apt-get install -y git openjdk-11-jdk maven
-    
-    # You can also add commands here to clone your repository,
-    # build the project, and deploy the artifact.
-    # For example:
-    # git clone https://github.com/your-repo/your-project.git
-    # cd your-project
-    # mvn clean package
-    EOT
 
   service_account {
-    email  = "503214801602-compute@developer.gserviceaccount.com"
+    email  = google_service_account.task_sa.email
     scopes = ["cloud-platform"]
   }
+
+  tags = ["app-server", "http-server"]
 }
 
-resource "google_compute_firewall" "allow-ssh-from-internet" {
-  name    = "allow-ssh-to-builder-vm"
-  network = "default"
+# A storage bucket to hold build artifacts
+resource "google_storage_bucket" "artifacts_bucket" {
+  name     = "${var.project_id}-app-artifacts" # Uses project ID to ensure a unique name
+  location = var.region
+}
+
+# Firewall rule to allow SSH from the internet to builder and app servers
+resource "google_compute_firewall" "allow-ssh" {
+  name        = "allow-ssh-from-internet"
+  network     = "default"
+  target_tags = ["builder-vm", "app-server"]
 
   allow {
     protocol = "tcp"
     ports    = ["22"]
   }
 
-  source_ranges = ["0.0.0.0/0"] # Allows SSH from any IP address.
-  target_tags   = ["builder-vm"]
+  source_ranges = ["0.0.0.0/0"]
+}
+
+# Firewall rule to allow HTTP from the internet
+resource "google_compute_firewall" "allow-http" {
+  name        = "allow-http-from-internet"
+  network     = "default"
+  target_tags = ["app-server"]
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
 }
