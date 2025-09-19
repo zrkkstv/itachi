@@ -48,13 +48,23 @@ Thumbs.db
 *.mov
 *.wmv
 
+<<<<<<< HEAD
 # Terraform directories
 .terraform/
 
+=======
+>>>>>>> 988bace (.gitignore edited online with Bitbucket)
 # Terraform state files
 .tfstate
 .tfstate.backup
 
+<<<<<<< HEAD
 # Maven project files
 pom.xml
 
+=======
+# Terraform directories and crash logs
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+>>>>>>> 988bace (.gitignore edited online with Bitbucket)
